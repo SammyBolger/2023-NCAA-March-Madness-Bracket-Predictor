@@ -1,0 +1,71 @@
+---
+title: "2023 NCAA March Madness Predictor"
+output: html_document
+date: "2024-03-14"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+# put your library statements here
+library(tidyverse)
+library(caret)
+library(ROCR)
+library(dplyr)
+
+# import the data
+ncaa_data <- read_csv("https://raw.githubusercontent.com/gmtanner-cord/DATA318/master/Original%20Data/ncaa_data_2001_2023.csv")
+ncaa_data <- ncaa_data %>% mutate(winner = factor(winner, levels = c("team1","team2")))
+```
+
+Model A predicts the point differential in college basketball games based on four key predictors: seed difference, win percentage difference, Simple Ratings System difference, and points per game difference between opposing teams. The model's performance is assessed using R-squared, p-values, and RMSE. Through visualizations, the impact of each predictor on the predicted point differential is examined, allowing for insights into how various factors influence game outcomes.
+
+```{r}
+ncaa_data <- ncaa_data %>%
+  mutate(seed_diff = seed.1 - seed.2,
+         win_pct_diff = win_pct.1 - win_pct.2,
+         srs_diff = srs.1 - srs.2,
+         pts_pg_diff = pts_pg.1 - pts_pg.2)
+
+model_reg <- lm(point_diff ~ seed_diff + win_pct_diff + srs_diff + pts_pg_diff, data = ncaa_data)
+summary(model_reg)
+
+grid <- expand.grid(seed_diff = seq(-15, 15, 1),
+                    win_pct_diff = 0,
+                    srs_diff = mean(ncaa_data$srs_diff),
+                    pts_pg_diff = mean(ncaa_data$pts_pg_diff))
+
+yhat <- predict(model_reg, newdata = grid)
+ggplot() +
+  geom_jitter(data = ncaa_data, aes(x = seed_diff, y = point_diff), alpha = 0.3) +
+  geom_line(data = grid, aes(x = seed_diff, y = yhat))
+
+grid <- expand.grid(seed_diff = 0,
+                    win_pct_diff = quantile(ncaa_data$win_pct_diff),
+                    srs_diff = mean(ncaa_data$srs_diff),
+                    pts_pg_diff = mean(ncaa_data$pts_pg_diff))
+
+yhat <- predict(model_reg, newdata = grid)
+ggplot() +
+  geom_point(data = ncaa_data, aes(x = win_pct_diff, y = point_diff), alpha = 0.3) +
+  geom_line(data = grid, aes(x = win_pct_diff, y = yhat))
+
+grid <- expand.grid(seed_diff = 0,
+                    win_pct_diff = mean(ncaa_data$win_pct_diff),
+                    srs_diff = quantile(ncaa_data$srs_diff),
+                    pts_pg_diff = mean(ncaa_data$pts_pg_diff))
+
+yhat <- predict(model_reg, newdata = grid)
+ggplot() +
+  geom_point(data = ncaa_data, aes(x = srs_diff, y = point_diff), alpha = 0.3) +
+  geom_line(data = grid, aes(x = srs_diff, y = yhat))
+
+grid <- expand.grid(seed_diff = 0,
+                    win_pct_diff = mean(ncaa_data$win_pct_diff),
+                    srs_diff = mean(ncaa_data$srs_diff),
+                    pts_pg_diff = quantile(ncaa_data$pts_pg_diff))
+
+yhat <- predict(model_reg, newdata = grid)
+ggplot() +
+  geom_point(data = ncaa_data, aes(x = pts_pg_diff, y = point_diff), alpha = 0.3) +
+  geom_line(data = grid, aes(x = pts_pg_diff, y = yhat))
+```
