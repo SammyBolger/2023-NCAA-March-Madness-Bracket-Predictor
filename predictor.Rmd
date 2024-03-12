@@ -69,3 +69,35 @@ ggplot() +
   geom_point(data = ncaa_data, aes(x = pts_pg_diff, y = point_diff), alpha = 0.3) +
   geom_line(data = grid, aes(x = pts_pg_diff, y = yhat))
 ```
+
+Model B is a logistic regression that predicts the winner of college basketball games based on factors like the difference in seed and win percentage between teams. The model's performance is assessed using measures like p-values, ROC curve, AUC, kappa statistic, and accuracy. The ROC curve shows how well the model distinguishes between true positives and false positives. AUC tells us how effective the model is at this task. Kappa indicates how well the model's predictions match actual outcomes beyond random chance, while accuracy simply shows the overall correctness of the predictions.
+
+```{r}
+model_class <- glm(winner ~ seed_diff + win_pct_diff, data = ncaa_data, family = "binomial")
+
+summary(model_class)
+
+pvalues_class <- summary(model_class)$coefficients[, 4]
+
+predicted_winner_prob <- predict(model_class, type = "response")
+
+predicted_winner <- ifelse(predicted_winner_prob > 0.5, "team1", "team2")
+
+accuracy <- mean(predicted_winner == ncaa_data$winner)
+
+ROCRpred <- prediction(predicted_winner_prob, ncaa_data$winner)
+ROCRperf <- performance(ROCRpred, "tpr", "fpr")
+plot(ROCRperf)
+
+auc <- performance(ROCRpred, "auc")
+auc <- auc@y.values[[1]]
+
+predicted_winner <- factor(predicted_winner, levels = c("team1", "team2"))
+
+kappa <- confusionMatrix(predicted_winner, ncaa_data$winner)$overall["Kappa"]
+
+pvalues_class
+cat("Accuracy:", accuracy, "\n")
+cat("AUC:", auc, "\n")
+cat("Kappa:", kappa, "\n")
+```
