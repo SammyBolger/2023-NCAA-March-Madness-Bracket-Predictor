@@ -101,3 +101,21 @@ cat("Accuracy:", accuracy, "\n")
 cat("AUC:", auc, "\n")
 cat("Kappa:", kappa, "\n")
 ```
+
+These 3 made up matchups involve pairs of college basketball teams facing off, with various differences in attributes such as seed, win percentage, Simple Rating System (SRS), and points per game. These attributes are used to predict the point differential between the teams using a regression model. The predicted point differentials are then calculated based on the model's predictions for each matchup. This provides insight into how the model expects each game to unfold, with the predicted point differential serving as an indicator of the expected performance gap between the teams.
+
+```{r}
+matchups <- data.frame(team1 = c("Team A", "Team B", "Team C"),
+                       team2 = c("Team D", "Team E", "Team F"),
+                       seed_diff = c(2, -3, 5),
+                       win_pct_diff = c(0.05, -0.03, 0.08),
+                       srs_diff = c(-1.2, 2.5, -0.7),
+                       pts_pg_diff = c(6, -4, 8))
+
+predicted_point_diff <- predict(model_reg, newdata = matchups[, c("seed_diff", "win_pct_diff", "srs_diff", "pts_pg_diff")])
+
+matchups$predicted_point_diff <- predicted_point_diff
+
+matchups
+```
+
