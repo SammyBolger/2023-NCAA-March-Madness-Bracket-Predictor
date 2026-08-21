@@ -15,7 +15,7 @@ Two models built on NCAA data from 2001-2023: a linear regression for predicting
 
 ## Data
 
-Historical NCAA tournament data 2001-2023, loaded directly from the [DATA318 course repository](https://github.com/gmtanner-cord/DATA318/blob/master/Original%20Data/ncaa_data_2001_2023.csv).
+Historical NCAA tournament data covering the 2001-2023 tournaments, loaded directly from a public dataset URL at the top of the notebook.
 
 ## Running
 
